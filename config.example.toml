@@ -1,0 +1,5 @@
+[database]
+user = "fastbin"
+database = "fastbin"
+port = 5432
+password = "fastbin1234"
