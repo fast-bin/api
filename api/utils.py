@@ -1,4 +1,6 @@
 import toml
+import random
+
 
 def get_config():
     with open("config.toml") as f:
@@ -12,3 +14,6 @@ def match_format(data, format):
         if not isinstance(v, format[k]):
             return False
     return True
+
+def generate_id():
+    return int(random.randbytes(4).hex(), 16)

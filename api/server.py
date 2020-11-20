@@ -1,18 +1,21 @@
-from .utils import get_config, match_format
+from .utils import get_config, match_format, generate_id
 
-import server
+import server as http
 import asyncpg
+
 import logging
+import json
+
 
 logging.basicConfig(level=logging.INFO)
 
-class Request(server.Request):
+class Request(http.Request):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.author = None
 
 
-class Server(server.Server):
+class Server(http.Server):
     config = get_config()
 
     async def init(self):
@@ -29,13 +32,13 @@ server = Server()
 @server.get("/api/pastes/(.+)")
 async def get_paste(request):
     try:
-        id = request.groups[0]
+        id = int(request.groups[0])
     except ValueError:
-        raise server.HTTPException("paste not found", code=404)
+        raise http.HTTPException("paste not found", code=404)
 
-    record = await server.db.fetchrow("SELECT content, author FROM pastes WHERE id=$1", id)
+    record = await server.db.fetchrow("SELECT owner_id, content FROM pastes WHERE id=$1", id)
     if not record:
-        raise server.HTTPException("paste not found", code=404)
+        raise http.HTTPException("paste not found", code=404)
 
     request.set_body(dict(record))
     request.status = 200
@@ -43,9 +46,14 @@ async def get_paste(request):
 
 @server.post("/api/pastes")
 async def post_paste(request):
-    body = request.body
-    if not match_format(body, {"body": str, "lang": str}):
-        raise server.HTTPException("invalid body format", code=400)
+    try:
+        body = json.loads(request.body)
+    except json.decoder.JSONDecodeError:
+        raise http.HTTPException("invalid body format", code=400)
+    
+    print(body)
+    if "body" not in body:
+        raise http.HTTPException("invalid body format", code=400)
     
     id = generate_id()
     

@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS pastes (
+    id BIGINT NOT NULL PRIMARY KEY,
+    content TEXT NOT NULL,
+    owner_id BIGINT REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT NOT NULL PRIMARY KEY,
+    name text NOT NULL
+)
